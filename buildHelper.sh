@@ -1,7 +1,7 @@
 #!/bin/bash
 THIS_DIR=$(pwd)
 KERNEL_REPO_INSTALL_LOC=$THIS_DIR # Directory to clone linux to
-KERNEL_REPO_LOC="$KERNEL_KERNEL_REPO_INSTALL_LOC/linux" # the actual location of the linux repo
+KERNEL_REPO_LOC="$KERNEL_REPO_INSTALL_LOC/linux" # the actual location of the linux repo
 KERNEL_PATCHES_LOC="$THIS_DIR/patches" # A folder containing ONLY patch files for the linux repo made via the git command.
 KERNEL_CONFIG="$THIS_DIR/linux.config" # the location of your config file
 
