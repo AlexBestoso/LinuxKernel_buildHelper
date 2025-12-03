@@ -1,0 +1,26 @@
+From 523d3c06eee93db74125b17b5c883ad2c58fcbd5 Mon Sep 17 00:00:00 2001
+From: Morning Star <alexbestoso@gmail.com>
+Date: Thu, 27 Nov 2025 01:49:39 -0500
+Subject: [PATCH] check tid is less than MAX_TID_COUNT
+
+---
+ drivers/net/wireless/realtek/rtlwifi/rtl8192cu/trx.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/realtek/rtlwifi/rtl8192cu/trx.c b/drivers/net/wireless/realtek/rtlwifi/rtl8192cu/trx.c
+index aa702ba7c9f5..fbd9cebb717a 100644
+--- a/drivers/net/wireless/realtek/rtlwifi/rtl8192cu/trx.c
++++ b/drivers/net/wireless/realtek/rtlwifi/rtl8192cu/trx.c
+@@ -511,7 +511,8 @@ void rtl92cu_tx_fill_desc(struct ieee80211_hw *hw,
+ 	if (sta) {
+ 		sta_entry = (struct rtl_sta_info *)sta->drv_priv;
+ 		tid = ieee80211_get_tid(hdr);
+-		agg_state = sta_entry->tids[tid].agg.agg_state;
++		if(tid < MAX_TID_COUNT)
++			agg_state = sta_entry->tids[tid].agg.agg_state;
+ 		ampdu_density = sta->deflink.ht_cap.ampdu_density;
+ 	}
+ 
+-- 
+2.34.1
+
