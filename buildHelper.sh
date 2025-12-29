@@ -1,80 +1,148 @@
 #!/bin/bash
+COLOR_RST="\033[0m"
+COLOR_RED="\033[0;31m"
+COLOR_GREEN="\033[0;32m"
+COLOR_YELLOW="\033[0;33m"
+COLOR_BLUE="\033[0;34m"
+COLOR_PURPLE="\033[0;35m"
+COLOR_CYAN="\033[0;36m"
+COLOR_BPURPLE="\033[1;35m"
+COLOR_BCYAN="\033[1;36m"
+COLOR_BYELLOW="\033[1;33m"
 THIS_DIR=$(pwd)
 KERNEL_REPO_INSTALL_LOC=$THIS_DIR # Directory to clone linux to
 KERNEL_REPO_LOC="$KERNEL_REPO_INSTALL_LOC/linux" # the actual location of the linux repo
 KERNEL_PATCHES_LOC="$THIS_DIR/patches" # A folder containing ONLY patch files for the linux repo made via the git command.
 KERNEL_CONFIG="$THIS_DIR/linux.config" # the location of your config file
 
-echo "Would you like to install the build requirements? (No/yes)"
+echo -en "${COLOR_CYAN}Would you like to install the build requirements? (No/yes)\n"
 read IPT
 if [ "$IPT" == "yes" ]; then
-	sudo apt-get install git fakeroot build-essential ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison
+	sudo apt-get install libdw-dev gawk libdwarf-dev git fakeroot build-essential ncurses-dev xz-utils libssl-dev bc flex libelf-dev bison
+	if [ "$?" != "0" ]; then
+		echo "build helper failed :("
+		return;
+	fi
 fi
 
-echo "Would you like to generate a new config file using your current kernel version? (No/yes)"
+echo -en "${COLOR_PURPLE}Would you like to generate a new config file using your current kernel version? (No/yes)\n"
 read IPT
 if [ "$IPT" == "yes" ]; then
 	cp -v /boot/config-$(uname -r) $KERNEL_CONFIG
+	if [ "$?" != "0" ]; then
+		echo "build helper failed :("
+		return;
+	fi
 fi
 
-echo "Would you like to download the kernel? (No/yes)"
+echo -en "${COLOR_BLUE}Would you like to download the kernel? (No/yes)\n"
 read IPT
 if [ "$IPT" == "yes" ]; then
 	echo "removing $KERNEL_REPO_LOC"
 	rm -rfv $KERNEL_REPO_LOC
+	if [ "$?" != "0" ]; then
+		echo "build helper failed :("
+		return;
+	fi
 	echo "downloading to $KERNEL_REPO_INSTALL_LOC"
 	cd $KERNEL_REPO_INSTALL_LOC
 	git clone https://github.com/torvalds/linux.git
+	if [ "$?" != "0" ]; then
+		echo "build helper failed :("
+		return;
+	fi
 	cd $THIS_DIR
 fi
 
-echo "Would you like to pull the kernel? (No/yes)"
+echo -en "${COLOR_YELLOW}Would you like to pull the kernel? (No/yes)\n"
 read IPT
 if [ "$IPT" == "yes" ]; then
 	cd $KERNEL_REPO_LOC;
 	git pull
+	if [ "$?" != "0" ]; then
+		echo "build helper failed :("
+		return;
+	fi
 	cd $THIS_DIR
 fi
 
-echo "Deleting old kernel (if it exists)"
+echo -en "${COLOR_CYAN}Deleting old kernel (if it exists)\n"
 rm -rfv "$THIS_DIR/myKernel"
+if [ "$?" != "0" ]; then
+	echo "build helper failed :("
+	return;
+fi
 
-echo "Setting up your kernel!"
+echo -en "${COLOR_PURPLE}Setting up your kernel!\n"
 cp -rv $KERNEL_REPO_LOC "$THIS_DIR/myKernel"
+if [ "$?" != "0" ]; then
+	echo "build helper failed :("
+	return;
+fi
 
-echo "Copying config to my kernel."
+echo -en "${COLOR_BLUE}Copying config to my kernel.\n"
 cp $KERNEL_CONFIG "$THIS_DIR/myKernel/.config"
+if [ "$?" != "0" ]; then
+	echo "build helper failed :("
+	return;
+fi
 
-echo "Applying patches"
+echo -en "${COLOR_GREEN}Applying patches\n"
 cd "$THIS_DIR/myKernel"
 for p in $(ls $KERNEL_PATCHES_LOC)
 do
 	patch="$KERNEL_PATCHES_LOC/$p"
 	echo "Applying patch $patch"
 	git apply $patch
+	if [ "$?" != "0" ]; then
+		echo "build helper failed :("
+		return;
+	fi
 done
 
-echo "Disabling trusted keys (new ones will be generated)"
+echo -en "${COLOR_RED}Disabling trusted keys (new ones will be generated)\n"
 scripts/config --disable SYSTEM_TRUSTED_KEYS
+if [ "$?" != "0" ]; then
+	echo "build helper failed :("
+	return;
+fi
 scripts/config --disable SYSTEM_REVOCATION_KEYS
+if [ "$?" != "0" ]; then
+	echo "build helper failed :("
+	return;
+fi
 
-echo "Would you like to configure your config file? (No/yes)"
+echo -en "${COLOR_YELLOW}Would you like to configure your config file? (No/yes)\n"
+read IPT
 if [ "$IPT" == "yes" ]; then
 	make menuconfig
 fi
-echo "Making kernel"
+echo -en "${COLOR_BPURPLE}Making kernel\n"
 make
-
-echo "install modules ? (No/yes)"
+if [ "$?" != "0" ]; then
+	echo "build helper failed :("
+	return;
+fi
+	
+echo "Player One, are you ready?"
+echo -en "${COLOR_BCYAN}install modules ? (No/yes)\n"
 read IPT
 if [ "$IPT" == "yes" ]; then
 	sudo make modules_install
+	if [ "$?" != "0" ]; then
+		echo "build helper failed :("
+		return;
+	fi
 fi
 
-echo "installing kernel? (No/yes)"
+echo -en "${COLOR_BYELLO}installing kernel? (No/yes)\n"
 read IPT
 if [ "$IPT" == "yes" ]; then
 	sudo make install
+	if [ "$?" != "0" ]; then
+		echo "build helper failed :("
+		return;
+	fi
 fi
 cd $THIS_DIR
-echo "Done :)"
+echo -en "${COLOR_RST}Done :)\n"
