@@ -1,0 +1,13 @@
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index 87205660c5d0..50cc570117e2 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -1342,6 +1342,8 @@ static void ext4_put_super(struct super_block *sb)
+ 	 * in-memory list had better be clean by this point. */
+ 	if (!list_empty(&sbi->s_orphan))
+ 		dump_orphan_list(sb, sbi);
++	if(!list_empty(&sbi->s_orphan))
++		printk(KERN_INFO "[MORNING DEBUG] fs/ext4/super.c : Failure to fully free orphan.\n");
+ 	ASSERT(list_empty(&sbi->s_orphan));
+ 
+ 	sync_blockdev(sb->s_bdev);
