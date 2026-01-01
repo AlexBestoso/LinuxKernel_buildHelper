@@ -1,5 +1,5 @@
+*.swp
 linux
 myKernel
 linux.config
-*.swp
 patch_archive
